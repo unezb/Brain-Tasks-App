@@ -1,0 +1,41 @@
+version: 0.2
+
+env:
+  variables:
+    CLUSTER_NAME: brain-tasks-cluster
+    AWS_DEFAULT_REGION: us-east-1
+    RELEASE_NAME: brain-tasks
+
+phases:
+  install:
+    commands:
+      - echo Installing kubectl...
+      - curl -LO https://dl.k8s.io/release/v1.29.0/bin/linux/amd64/kubectl
+      - chmod +x kubectl
+      - mv kubectl /usr/local/bin/
+      - kubectl version --client
+
+      - echo Installing Helm...
+      - curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+  pre_build:
+    commands:
+      - echo Verifying CodeBuild IAM identity...
+      - aws sts get-caller-identity
+
+      - echo Updating kubeconfig for EKS cluster...
+      - aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $CLUSTER_NAME
+
+      - echo Verifying cluster connectivity...
+      - kubectl get nodes
+
+  build:
+    commands:
+      - echo Deploying using Helm...
+      - helm upgrade --install $RELEASE_NAME ./brain-tasks-app
+
+  post_build:
+    commands:
+      - echo Deployment completed
+      - kubectl get pods
+      - kubectl get svc
