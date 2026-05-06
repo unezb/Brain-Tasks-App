@@ -1,0 +1,9 @@
+image:
+  repository: 628590695807.dkr.ecr.us-east-1.amazonaws.com/brain-tasks-app
+  tag: latest
+
+service:
+  type: LoadBalancer
+  port: 80
+
+containerPort: 3000
